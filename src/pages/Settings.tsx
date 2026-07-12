@@ -5,7 +5,6 @@ import { ThemeSwitcher } from '@/components/navigation/ThemeSwitcher';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { CATEGORY_COLOR_SWATCHES } from '@/constants/categories';
 import { SHORTCUTS } from '@/constants/shortcuts';
 import { formatRelative } from '@/utils/date';
 import { cn } from '@/utils/cn';
@@ -54,7 +53,7 @@ export default function Settings() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [newCategoryColor, setNewCategoryColor] = useState(CATEGORY_COLOR_SWATCHES[0]);
+  const [newCategoryColor, setNewCategoryColor] = useState('#6366F1');
   const [goalDrafts, setGoalDrafts] = useState(goals);
 
   const handleAddCategory = () => {
@@ -195,21 +194,34 @@ export default function Settings() {
             onChange={(e) => setNewCategoryName(e.target.value)}
             className="sm:max-w-xs"
           />
-          <div className="flex items-center gap-1.5">
-            {CATEGORY_COLOR_SWATCHES.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => setNewCategoryColor(color)}
-                aria-label={`Choose color ${color}`}
-                aria-pressed={newCategoryColor === color}
-                className={cn(
-                  'h-6 w-6 rounded-full border-2 transition-transform',
-                  newCategoryColor === color ? 'scale-110 border-ink-900 dark:border-white' : 'border-transparent',
-                )}
-                style={{ backgroundColor: color }}
-              />
-            ))}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => document.getElementById('settings-category-color-picker')?.click()}
+              className="h-9 w-9 rounded-xl border border-ink-200 shadow-sm transition-transform hover:scale-105 active:scale-95 dark:border-ink-700"
+              style={{ backgroundColor: newCategoryColor }}
+              title="Choose custom color"
+            />
+            <input
+              id="settings-category-color-picker"
+              type="color"
+              value={newCategoryColor}
+              onChange={(e) => setNewCategoryColor(e.target.value)}
+              className="absolute inset-0 opacity-0 pointer-events-none w-0 h-0"
+            />
+            <input
+              type="text"
+              value={newCategoryColor.toUpperCase()}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^#[0-9A-F]{0,6}$/i.test(val)) {
+                  setNewCategoryColor(val);
+                }
+              }}
+              maxLength={7}
+              className="w-24 rounded-xl border border-ink-200 bg-white px-3 py-1.5 text-center text-sm font-mono text-ink-700 shadow-sm focus:border-flow-500 focus:outline-none dark:border-ink-700 dark:bg-ink-800 dark:text-ink-200"
+              placeholder="#HEX"
+            />
           </div>
           <Button size="sm" leftIcon={<FiPlus aria-hidden="true" />} onClick={handleAddCategory}>
             Add category
