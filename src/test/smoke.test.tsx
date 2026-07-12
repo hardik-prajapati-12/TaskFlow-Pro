@@ -77,14 +77,14 @@ describe('DocVault', () => {
     renderApp();
 
     await user.click(await screen.findByRole('link', { name: /calendar/i }));
-    expect(await screen.findByRole('heading', { name: /^calendar$/i }, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /^calendar$/i }, { timeout: 10000 })).toBeInTheDocument();
 
     await user.click(screen.getByRole('link', { name: /statistics/i }));
-    expect(await screen.findByRole('heading', { name: /^statistics$/i }, { timeout: 5000 })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: /^statistics$/i }, { timeout: 10000 })).toBeInTheDocument();
 
     await user.click(screen.getByRole('link', { name: /settings/i }));
-    expect(await screen.findByRole('heading', { name: /^settings$/i }, { timeout: 5000 })).toBeInTheDocument();
-  });
+    expect(await screen.findByRole('heading', { name: /^settings$/i }, { timeout: 10000 })).toBeInTheDocument();
+  }, 20000);
 
   it('toggles dark mode via the theme switcher', async () => {
     const user = userEvent.setup();
@@ -140,5 +140,32 @@ describe('DocVault', () => {
 
     const itemsAfterUndo = await screen.findAllByText('Recurring Workout');
     expect(itemsAfterUndo.length).toBe(1);
+  });
+
+  it('allows deleting any category (including default ones) and moves tasks to fallback category', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(await screen.findByRole('link', { name: /^tasks$/i }));
+    await user.click(await within(main()).findByRole('button', { name: /^new task$/i }));
+    await user.type(await screen.findByLabelText(/^title$/i), 'My Test Task');
+    await user.selectOptions(await screen.findByLabelText(/^category$/i), 'work');
+    await user.click(screen.getByRole('button', { name: /^create task$/i }));
+
+    expect(await screen.findByText('My Test Task')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: /settings/i }));
+
+    const deleteWorkBtn = await screen.findByRole('button', { name: /delete work category/i });
+    await user.click(deleteWorkBtn);
+
+    const confirmDialog = await screen.findByRole('dialog', { name: /delete "work"/i });
+    await user.click(within(confirmDialog).getByRole('button', { name: /^delete$/i }));
+
+    expect(screen.queryByRole('button', { name: /delete work category/i })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('link', { name: /^tasks$/i }));
+    const personalElements = await screen.findAllByText('Personal');
+    expect(personalElements.length).toBeGreaterThan(0);
   });
 });

@@ -90,9 +90,11 @@ export default function Settings() {
   };
 
   const handleDeleteCategory = (id: string, name: string) => {
+    const remaining = categories.filter((c) => c.id !== id);
+    const fallbackName = remaining[0]?.name || 'another category';
     requestConfirm({
       title: `Delete "${name}"?`,
-      message: 'Any tasks in this category will be moved to Personal.',
+      message: `Any tasks in this category will be moved to ${fallbackName}.`,
       danger: true,
       confirmLabel: 'Delete',
       onConfirm: () => deleteCategory(id),
@@ -173,7 +175,7 @@ export default function Settings() {
             >
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: c.color }} aria-hidden="true" />
               <span className="text-sm text-ink-600 dark:text-ink-300">{c.name}</span>
-              {!c.isDefault && (
+              {categories.length > 1 && (
                 <button
                   type="button"
                   onClick={() => handleDeleteCategory(c.id, c.name)}

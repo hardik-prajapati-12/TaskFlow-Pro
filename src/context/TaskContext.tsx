@@ -432,11 +432,19 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const deleteCategory = useCallback(
     (id: string) => {
+      if (categories.length <= 1) {
+        notify.error('You must keep at least one category.');
+        return;
+      }
       const category = categories.find((c) => c.id === id);
-      if (!category || category.isDefault) return;
-      setCategories((prev) => prev.filter((c) => c.id !== id));
+      if (!category) return;
+
+      const remaining = categories.filter((c) => c.id !== id);
+      const fallback = remaining[0];
+
+      setCategories(remaining);
       setTasks((prev) =>
-        prev.map((t) => (t.category === id ? { ...t, category: DEFAULT_CATEGORIES[0].id } : t)),
+        prev.map((t) => (t.category === id ? { ...t, category: fallback.id } : t)),
       );
       notify.categoryDeleted(category.name);
     },
