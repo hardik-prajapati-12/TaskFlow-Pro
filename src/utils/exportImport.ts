@@ -26,7 +26,7 @@ export function downloadTasksAsJson(tasks: Task[], categories: Category[], goals
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `docvault-export-${format(new Date(), 'yyyy-MM-dd-HHmm')}.json`;
+  link.download = `taskflow-export-${format(new Date(), 'yyyy-MM-dd-HHmm')}.json`;
   document.body.appendChild(link);
   link.click();
   link.remove();

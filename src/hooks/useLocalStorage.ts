@@ -5,7 +5,7 @@ type SetValue<T> = (next: T | ((prev: T) => T)) => void;
 
 /**
  * A useState-compatible hook that transparently persists to localStorage
- * on every update. This is what gives DocVault its "auto save" behavior —
+ * on every update. This is what gives TaskFlow its "auto save" behavior —
  * there is no separate save step anywhere in the app.
  */
 export function useLocalStorage<T>(key: string, initialValue: T): [T, SetValue<T>] {

@@ -4,9 +4,18 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.tsx';
 import './styles/index.css';
 
+// Unregister any active service workers from other projects on the same local port
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error('Root element not found. DocVault could not mount.');
+  throw new Error('Root element not found. TaskFlow could not mount.');
 }
 
 createRoot(rootElement).render(

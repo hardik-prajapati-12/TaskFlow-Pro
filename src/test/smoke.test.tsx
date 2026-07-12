@@ -23,10 +23,10 @@ beforeEach(() => {
   document.documentElement.classList.remove('dark');
 });
 
-describe('DocVault', () => {
+describe('TaskFlow', () => {
   it('renders the dashboard empty state on first load', async () => {
     renderApp();
-    expect(await screen.findByText(/welcome to docvault/i)).toBeInTheDocument();
+    expect(await screen.findByText(/welcome to taskflow/i)).toBeInTheDocument();
   });
 
   it('creates a task from the dashboard empty state and updates stats', async () => {
@@ -100,7 +100,7 @@ describe('DocVault', () => {
   it('opens the create-task modal with Ctrl+N and closes it with Escape', async () => {
     const user = userEvent.setup();
     renderApp();
-    await screen.findByText(/welcome to docvault/i);
+    await screen.findByText(/welcome to taskflow/i);
 
     await user.keyboard('{Control>}n{/Control}');
     expect(await screen.findByRole('dialog', { name: /create a new task/i })).toBeInTheDocument();

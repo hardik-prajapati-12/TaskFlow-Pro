@@ -33,7 +33,13 @@ export function TaskModal() {
           >
             Edit
           </Button>
-          <Button leftIcon={<FiCheckCircle aria-hidden="true" />} onClick={() => toggleComplete(task.id)}>
+          <Button
+            leftIcon={<FiCheckCircle aria-hidden="true" />}
+            onClick={() => {
+              closeTaskDetails();
+              toggleComplete(task.id);
+            }}
+          >
             {task.completed ? 'Mark as pending' : 'Mark complete'}
           </Button>
         </>
