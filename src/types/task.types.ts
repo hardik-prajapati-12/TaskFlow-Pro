@@ -19,6 +19,7 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   completedAt: string | null;
+  nextOccurrenceId?: string;
 }
 
 export interface DeletedTask extends Task {

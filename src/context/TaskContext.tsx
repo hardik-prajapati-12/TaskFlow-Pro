@@ -312,10 +312,16 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     (id: string) => {
       const task = tasks.find((t) => t.id === id);
       if (!task) return;
-      const { updated, nextOccurrence } = toggleTaskCompletion(task);
+      const { updated, nextOccurrence, removeOccurrenceId } = toggleTaskCompletion(task);
       setTasks((prev) => {
-        const next = prev.map((t) => (t.id === id ? updated : t));
-        return nextOccurrence ? [nextOccurrence, ...next] : next;
+        let next = prev.map((t) => (t.id === id ? updated : t));
+        if (nextOccurrence) {
+          next = [nextOccurrence, ...next];
+        }
+        if (removeOccurrenceId) {
+          next = next.filter((t) => t.id !== removeOccurrenceId || t.completed);
+        }
+        return next;
       });
       if (updated.completed) {
         notify.taskCompleted(updated.title);

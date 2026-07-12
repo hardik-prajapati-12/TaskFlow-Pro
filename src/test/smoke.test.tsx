@@ -111,4 +111,34 @@ describe('DocVault', () => {
     });
     expect(screen.queryByRole('dialog', { name: /create a new task/i })).not.toBeInTheDocument();
   });
+
+  it('correctly handles recurring task completion and undo completion without duplicating next occurrence', async () => {
+    const user = userEvent.setup();
+    renderApp();
+
+    await user.click(await screen.findByRole('link', { name: /^tasks$/i }));
+    await user.click(await within(main()).findByRole('button', { name: /^new task$/i }));
+
+    await user.type(await screen.findByLabelText(/^title$/i), 'Recurring Workout');
+    await user.selectOptions(await screen.findByLabelText(/^repeat$/i), 'daily');
+    await user.click(screen.getByRole('button', { name: /^create task$/i }));
+
+    expect(await screen.findByText('Recurring Workout')).toBeInTheDocument();
+
+    const completeToggle = await screen.findByRole('button', {
+      name: /mark "recurring workout" as complete/i,
+    });
+    await user.click(completeToggle);
+
+    const items = await screen.findAllByText('Recurring Workout');
+    expect(items.length).toBe(2);
+
+    const incompleteToggle = await screen.findByRole('button', {
+      name: /mark "recurring workout" as not complete/i,
+    });
+    await user.click(incompleteToggle);
+
+    const itemsAfterUndo = await screen.findAllByText('Recurring Workout');
+    expect(itemsAfterUndo.length).toBe(1);
+  });
 });

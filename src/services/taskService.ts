@@ -56,6 +56,7 @@ export function duplicateTask(task: Task): Task {
 interface CompletionResult {
   updated: Task;
   nextOccurrence: Task | null;
+  removeOccurrenceId?: string;
 }
 
 /** Toggle completion. If the task recurs and is being completed, spin off the next occurrence. */
@@ -63,19 +64,24 @@ export function toggleTaskCompletion(task: Task): CompletionResult {
   const now = new Date().toISOString();
 
   if (task.completed) {
+    const removeOccurrenceId = task.nextOccurrenceId;
+    const { nextOccurrenceId: _, ...cleanTask } = task;
     return {
-      updated: { ...task, completed: false, completedAt: null, updatedAt: now },
+      updated: { ...cleanTask, completed: false, completedAt: null, updatedAt: now },
       nextOccurrence: null,
+      removeOccurrenceId,
     };
   }
 
-  const updated: Task = { ...task, completed: true, completedAt: now, updatedAt: now };
-
   let nextOccurrence: Task | null = null;
+  let nextOccurrenceId: string | undefined = undefined;
+
   if (task.recurrence !== 'none') {
+    const nextId = generateId();
+    nextOccurrenceId = nextId;
     nextOccurrence = {
       ...task,
-      id: generateId(),
+      id: nextId,
       dueDate: getNextRecurrenceDate(task.dueDate, task.recurrence),
       completed: false,
       completedAt: null,
@@ -85,6 +91,14 @@ export function toggleTaskCompletion(task: Task): CompletionResult {
       updatedAt: now,
     };
   }
+
+  const updated: Task = {
+    ...task,
+    completed: true,
+    completedAt: now,
+    updatedAt: now,
+    nextOccurrenceId,
+  };
 
   return { updated, nextOccurrence };
 }
