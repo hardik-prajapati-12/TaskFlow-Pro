@@ -45,7 +45,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <FiCheckSquare className="h-4 w-4" aria-hidden="true" />
           </div>
           <p className="font-display text-base font-bold leading-tight text-ink-900 dark:text-white">
-            Doc<span className="text-gradient-flow">Vault</span>
+            TaskFlow <span className="text-gradient-flow">Pro</span>
           </p>
         </div>
 
