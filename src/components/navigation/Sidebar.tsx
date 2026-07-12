@@ -72,7 +72,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
 
         <div className="mt-auto space-y-1 px-2 pt-4">
-          <p className="text-xs text-ink-300 dark:text-ink-600">TaskFlow v1.0.0</p>
+          <p className="text-xs text-ink-300 dark:text-ink-600">TaskFlow Pro v1.0.0</p>
         </div>
       </aside>
     </>
