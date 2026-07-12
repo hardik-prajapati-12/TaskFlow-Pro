@@ -1,34 +1,62 @@
 # Dependencies
-node_modules
+node_modules/
+jspm_packages/
+web_modules/
 
 # Build output
-dist
-dist-ssr
-build
+dist/
+dist-ssr/
+build/
 
-# Env
+# Env & Sensitive files
 .env
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
 .env.*.local
+*.pem
 
-# Editor
-.vscode/*
+# Editor / IDE configuration
+.vscode/
 !.vscode/extensions.json
-.idea
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
 
-# OS
+# OS Metadata
 .DS_Store
+Thumbs.db
+desktop.ini
 
 # Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
+pnpm-debug.log*
 
-# TypeScript incremental build cache
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# TypeScript Cache
 *.tsbuildinfo
+
+# Test Coverage
+coverage/
+.nyc_output/
+/test-results/
+
+# AI Coding Agent Directories & Local Cache
+.agents/
+.gemini/
+.system_generated/
