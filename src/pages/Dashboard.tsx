@@ -38,7 +38,7 @@ export default function Dashboard() {
       {tasks.length === 0 ? (
         <EmptyState
           icon={<FiList />}
-          title="Welcome to TaskFlow Pro"
+          title="Welcome to DocVault"
           description="You don't have any tasks yet. Create your first one to start tracking your day."
           action={<Button onClick={openCreateForm}>Create your first task</Button>}
         />

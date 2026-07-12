@@ -6,7 +6,7 @@ import './styles/index.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error('Root element not found. TaskFlow Pro could not mount.');
+  throw new Error('Root element not found. DocVault could not mount.');
 }
 
 createRoot(rootElement).render(

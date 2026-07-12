@@ -116,7 +116,7 @@ export default function Settings() {
         <p className="mt-1 text-sm text-ink-400">Manage your preferences, categories, and data.</p>
       </div>
 
-      <SectionCard title="Appearance" description="Choose how TaskFlow Pro looks on this device.">
+      <SectionCard title="Appearance" description="Choose how DocVault looks on this device.">
         <ThemeSwitcher />
       </SectionCard>
 
@@ -299,7 +299,7 @@ export default function Settings() {
       <SectionCard title="About" icon={<FiInfo className="text-flow-500" aria-hidden="true" />}>
         <div className="space-y-1.5 text-sm text-ink-500 dark:text-ink-300">
           <p>
-            <span className="font-semibold text-ink-800 dark:text-white">TaskFlow Pro</span> — a premium,
+            <span className="font-semibold text-ink-800 dark:text-white">DocVault</span> — a premium,
             offline-first task management dashboard.
           </p>
           <p>Version 1.0.0</p>
