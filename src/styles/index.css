@@ -1,0 +1,172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-ink-200/60 dark:border-ink-700/60;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply font-sans text-ink-800 dark:text-ink-100 antialiased;
+    @apply bg-paper dark:bg-ink-950;
+    @apply bg-mesh-light dark:bg-mesh-dark bg-fixed;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display text-ink-900 dark:text-white;
+  }
+
+  ::selection {
+    @apply bg-flow-500/30 text-ink-900 dark:text-white;
+  }
+
+  /* Visible, consistent keyboard focus ring everywhere */
+  :focus-visible {
+    @apply outline-none ring-2 ring-flow-500 ring-offset-2 ring-offset-paper dark:ring-offset-ink-950;
+  }
+
+  /* Thin, theme-aware scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-300 dark:bg-ink-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-400 dark:bg-ink-500;
+  }
+
+  /* Respect reduced-motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Core glass surface used across cards, panels, modals */
+  .glass-panel {
+    @apply bg-white/70 dark:bg-ink-800/50;
+    @apply backdrop-blur-xl;
+    @apply border border-white/60 dark:border-white/10;
+    @apply shadow-soft dark:shadow-none;
+  }
+
+  .glass-card {
+    @apply glass-panel rounded-2xl;
+  }
+
+  .glass-panel-solid {
+    @apply bg-white dark:bg-ink-800;
+    @apply border border-ink-100 dark:border-ink-700;
+    @apply shadow-soft;
+  }
+
+  /* Signature gradient — reserved for primary actions + brand accents */
+  .flow-gradient {
+    @apply bg-flow-gradient;
+  }
+
+  .text-gradient-flow {
+    @apply bg-flow-gradient bg-clip-text text-transparent;
+  }
+
+  .btn-base {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none;
+    @apply active:scale-[0.97];
+  }
+
+  .btn-primary {
+    @apply btn-base text-white bg-flow-gradient shadow-glow hover:brightness-110;
+  }
+
+  .btn-secondary {
+    @apply btn-base bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-100;
+    @apply border border-ink-200 dark:border-ink-600 hover:bg-ink-50 dark:hover:bg-ink-700;
+  }
+
+  .btn-ghost {
+    @apply btn-base text-ink-500 dark:text-ink-300 hover:bg-ink-100/70 dark:hover:bg-white/10;
+  }
+
+  .btn-danger {
+    @apply btn-base text-white bg-priority-high hover:brightness-110 shadow-soft;
+  }
+
+  .field-label {
+    @apply block text-sm font-medium text-ink-600 dark:text-ink-300 mb-1.5;
+  }
+
+  .field-error {
+    @apply mt-1.5 text-xs font-medium text-priority-high;
+  }
+
+  .input-base {
+    @apply w-full rounded-xl bg-white/80 dark:bg-ink-900/60;
+    @apply border border-ink-200 dark:border-ink-600;
+    @apply px-3.5 py-2.5 text-sm text-ink-800 dark:text-ink-100;
+    @apply placeholder:text-ink-400 dark:placeholder:text-ink-500;
+    @apply transition-colors duration-150;
+    @apply focus:border-flow-500;
+  }
+
+  /* Keyboard-shortcut hint chip, e.g. ⌘N */
+  .kbd {
+    @apply inline-flex items-center gap-0.5 rounded-md border border-ink-200 dark:border-ink-600;
+    @apply bg-white dark:bg-ink-800 px-1.5 py-0.5 font-mono text-[11px] font-medium text-ink-500 dark:text-ink-300;
+    @apply shadow-[0_1px_0_rgba(0,0,0,0.05)];
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden bg-ink-100 dark:bg-ink-700 rounded-lg;
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s infinite linear;
+  }
+  .dark .skeleton {
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.08),
+      transparent
+    );
+  }
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}

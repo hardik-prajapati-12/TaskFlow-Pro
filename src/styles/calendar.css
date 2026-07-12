@@ -1,0 +1,208 @@
+/* TaskFlow Pro theme override for react-big-calendar */
+
+.tf-calendar-wrap .rbc-calendar {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  color: theme('colors.ink.700');
+}
+.dark .tf-calendar-wrap .rbc-calendar {
+  color: theme('colors.ink.100');
+}
+
+/* Toolbar */
+.tf-calendar-wrap .rbc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.tf-calendar-wrap .rbc-toolbar-label {
+  font-family: 'Sora', sans-serif;
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: theme('colors.ink.900');
+  order: -1;
+  flex-basis: 100%;
+  text-align: left;
+  margin-bottom: 0.25rem;
+}
+.dark .tf-calendar-wrap .rbc-toolbar-label {
+  color: theme('colors.white');
+}
+@media (min-width: 768px) {
+  .tf-calendar-wrap .rbc-toolbar-label {
+    flex-basis: auto;
+    order: 0;
+    margin-bottom: 0;
+  }
+}
+.tf-calendar-wrap .rbc-btn-group {
+  display: inline-flex;
+  gap: 0.375rem;
+}
+.tf-calendar-wrap .rbc-toolbar button {
+  border: 1px solid theme('colors.ink.200');
+  background: theme('colors.white');
+  color: theme('colors.ink.600');
+  border-radius: 0.65rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+.dark .tf-calendar-wrap .rbc-toolbar button {
+  background: theme('colors.ink.800');
+  border-color: theme('colors.ink.600');
+  color: theme('colors.ink.200');
+}
+.tf-calendar-wrap .rbc-toolbar button:hover {
+  border-color: theme('colors.flow.400');
+  color: theme('colors.flow.600');
+}
+.tf-calendar-wrap .rbc-toolbar button.rbc-active {
+  background-image: linear-gradient(135deg, #4f46e5 0%, #4338ca 45%, #0ea5a0 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 14px -4px rgba(79, 70, 229, 0.5);
+}
+.tf-calendar-wrap .rbc-toolbar button.rbc-active:hover {
+  color: white;
+}
+.tf-calendar-wrap .rbc-toolbar button:focus-visible {
+  outline: 2px solid theme('colors.flow.500');
+  outline-offset: 2px;
+}
+
+/* Overall grid container */
+.tf-calendar-wrap .rbc-month-view,
+.tf-calendar-wrap .rbc-time-view,
+.tf-calendar-wrap .rbc-agenda-view {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid theme('colors.ink.100');
+  background: rgba(255, 255, 255, 0.6);
+}
+.dark .tf-calendar-wrap .rbc-month-view,
+.dark .tf-calendar-wrap .rbc-time-view,
+.dark .tf-calendar-wrap .rbc-agenda-view {
+  border-color: theme('colors.ink.700');
+  background: rgba(20, 27, 46, 0.5);
+}
+
+.tf-calendar-wrap .rbc-off-range-bg {
+  background: theme('colors.ink.50');
+}
+.dark .tf-calendar-wrap .rbc-off-range-bg {
+  background: rgba(11, 17, 32, 0.4);
+}
+
+.tf-calendar-wrap .rbc-today {
+  background-color: theme('colors.flow.50');
+}
+.dark .tf-calendar-wrap .rbc-today {
+  background-color: rgba(79, 70, 229, 0.15);
+}
+
+.tf-calendar-wrap .rbc-header,
+.tf-calendar-wrap .rbc-month-row + .rbc-month-row,
+.tf-calendar-wrap .rbc-day-bg + .rbc-day-bg,
+.tf-calendar-wrap .rbc-month-row,
+.tf-calendar-wrap .rbc-time-header-content,
+.tf-calendar-wrap .rbc-time-content,
+.tf-calendar-wrap .rbc-timeslot-group,
+.tf-calendar-wrap .rbc-agenda-table,
+.tf-calendar-wrap .rbc-agenda-table td,
+.tf-calendar-wrap .rbc-agenda-table th {
+  border-color: theme('colors.ink.100') !important;
+}
+.dark .tf-calendar-wrap .rbc-header,
+.dark .tf-calendar-wrap .rbc-month-row + .rbc-month-row,
+.dark .tf-calendar-wrap .rbc-day-bg + .rbc-day-bg,
+.dark .tf-calendar-wrap .rbc-month-row,
+.dark .tf-calendar-wrap .rbc-time-header-content,
+.dark .tf-calendar-wrap .rbc-time-content,
+.dark .tf-calendar-wrap .rbc-timeslot-group,
+.dark .tf-calendar-wrap .rbc-agenda-table,
+.dark .tf-calendar-wrap .rbc-agenda-table td,
+.dark .tf-calendar-wrap .rbc-agenda-table th {
+  border-color: theme('colors.ink.700') !important;
+}
+
+.tf-calendar-wrap .rbc-header {
+  padding: 0.6rem 0.25rem;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: theme('colors.ink.400');
+}
+.dark .tf-calendar-wrap .rbc-header {
+  color: theme('colors.ink.400');
+}
+
+.tf-calendar-wrap .rbc-date-cell {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: theme('colors.ink.500');
+}
+.tf-calendar-wrap .rbc-date-cell.rbc-now {
+  color: theme('colors.flow.600');
+  font-weight: 700;
+}
+
+/* Events */
+.tf-calendar-wrap .rbc-event {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+}
+.tf-calendar-wrap .rbc-event:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 1px;
+}
+.tf-calendar-wrap .rbc-event.rbc-selected {
+  box-shadow: 0 0 0 2px white, 0 0 0 4px theme('colors.flow.500');
+}
+.tf-calendar-wrap .rbc-show-more {
+  color: theme('colors.flow.600');
+  font-weight: 600;
+  background: transparent;
+}
+.dark .tf-calendar-wrap .rbc-show-more {
+  color: theme('colors.flow.300');
+}
+
+.tf-calendar-wrap .rbc-current-time-indicator {
+  background-color: theme('colors.priority.high');
+  height: 2px;
+}
+
+.tf-calendar-wrap .rbc-agenda-empty {
+  padding: 2rem;
+  text-align: center;
+  color: theme('colors.ink.400');
+}
+
+.tf-calendar-wrap .rbc-overlay {
+  border-radius: 0.85rem;
+  border: 1px solid theme('colors.ink.100');
+  background: theme('colors.white');
+  box-shadow: 0 8px 30px -8px rgba(15, 23, 42, 0.25);
+  padding: 0.5rem;
+}
+.dark .tf-calendar-wrap .rbc-overlay {
+  background: theme('colors.ink.800');
+  border-color: theme('colors.ink.600');
+}
+.tf-calendar-wrap .rbc-overlay-header {
+  font-weight: 600;
+  border-bottom: 1px solid theme('colors.ink.100');
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.4rem;
+}
