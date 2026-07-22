@@ -36,7 +36,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 flex w-72 shrink-0 flex-col border-r border-ink-100/80 bg-white/90 px-4 py-6 backdrop-blur-xl transition-transform duration-300 ease-out dark:border-ink-700/60 dark:bg-ink-900/80',
-          'md:static md:translate-x-0 md:bg-white/60 dark:md:bg-ink-900/40',
+          'md:sticky md:top-0 md:h-screen md:translate-x-0 md:overflow-y-auto md:bg-white/60 dark:md:bg-ink-900/40',
           isOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
