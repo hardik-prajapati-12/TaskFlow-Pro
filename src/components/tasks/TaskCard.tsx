@@ -68,6 +68,7 @@ export function TaskCard({ task }: { task: Task }) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
       className={cn(
         'glass-card group relative flex flex-col gap-3 p-4 transition-shadow duration-200 hover:shadow-soft-lg',
+        menuOpen ? 'z-30' : 'z-0 hover:z-10',
         task.completed && 'opacity-70',
         isSelected && 'ring-2 ring-flow-500',
       )}
@@ -147,7 +148,7 @@ export function TaskCard({ task }: { task: Task }) {
           {menuOpen && (
             <div
               role="menu"
-              className="glass-panel-solid absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl py-1 text-sm shadow-soft-lg"
+              className="glass-panel-solid absolute right-0 z-50 mt-1 w-44 overflow-hidden rounded-xl py-1 text-sm shadow-soft-lg"
             >
               <MenuItem
                 icon={<FiEdit2 aria-hidden="true" />}
