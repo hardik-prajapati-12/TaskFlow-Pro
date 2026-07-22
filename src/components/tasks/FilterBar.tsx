@@ -12,6 +12,7 @@ const FILTERS: { value: FilterType; label: string }[] = [
   { value: 'today', label: 'Today' },
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'overdue', label: 'Overdue' },
+  { value: 'terminated', label: 'Terminated' },
   { value: 'archived', label: 'Archived' },
 ];
 

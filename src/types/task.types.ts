@@ -15,6 +15,8 @@ export interface Task {
   archived: boolean;
   pinned: boolean;
   favorite: boolean;
+  terminated?: boolean;
+  terminatedAt?: string | null;
   recurrence: RecurrenceType;
   createdAt: string;
   updatedAt: string;
@@ -54,5 +56,6 @@ export interface TaskStats {
   completed: number;
   pending: number;
   overdue: number;
+  terminated: number;
   productivity: number;
 }

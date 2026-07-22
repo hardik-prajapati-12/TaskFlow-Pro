@@ -32,6 +32,7 @@ export function TaskCard({ task }: { task: Task }) {
     toggleArchive,
     deleteTask,
     duplicateTask,
+    reactivateTask,
     openEditForm,
     openTaskDetails,
     selectionMode,
@@ -46,6 +47,7 @@ export function TaskCard({ task }: { task: Task }) {
 
   const category = getCategory(task.category);
   const overdue = isTaskOverdue(task.dueDate, task.completed);
+  const isTerminated = Boolean(task.terminated) || (overdue && !task.completed);
   const isSelected = selectedIds.includes(task.id);
 
   const handleDelete = () => {
@@ -70,6 +72,7 @@ export function TaskCard({ task }: { task: Task }) {
         'glass-card group relative flex flex-col gap-3 p-4 transition-shadow duration-200 hover:shadow-soft-lg',
         menuOpen ? 'z-30' : 'z-0 hover:z-10',
         task.completed && 'opacity-70',
+        isTerminated && 'border-priority-high/40 bg-priority-high/[0.03] dark:bg-priority-high/[0.05]',
         isSelected && 'ring-2 ring-flow-500',
       )}
     >
@@ -101,6 +104,8 @@ export function TaskCard({ task }: { task: Task }) {
             'mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
             task.completed
               ? 'border-transparent bg-flow-gradient text-white'
+              : isTerminated
+              ? 'border-priority-high text-priority-high hover:bg-priority-high/10'
               : 'border-ink-300 hover:border-flow-500 dark:border-ink-500',
           )}
         >
@@ -116,6 +121,7 @@ export function TaskCard({ task }: { task: Task }) {
             className={cn(
               'truncate font-medium text-ink-800 dark:text-ink-100',
               task.completed && 'text-ink-400 line-through dark:text-ink-500',
+              isTerminated && !task.completed && 'text-priority-high font-semibold',
             )}
           >
             {task.title}
@@ -150,6 +156,16 @@ export function TaskCard({ task }: { task: Task }) {
               role="menu"
               className="glass-panel-solid absolute right-0 z-50 mt-1 w-44 overflow-hidden rounded-xl py-1 text-sm shadow-soft-lg"
             >
+              {isTerminated && (
+                <MenuItem
+                  icon={<FiRotateCcw aria-hidden="true" />}
+                  label="Reactivate"
+                  onClick={() => {
+                    reactivateTask(task.id);
+                    setMenuOpen(false);
+                  }}
+                />
+              )}
               <MenuItem
                 icon={<FiEdit2 aria-hidden="true" />}
                 label="Edit"
@@ -195,7 +211,12 @@ export function TaskCard({ task }: { task: Task }) {
       >
         <CategoryBadge category={category} />
         <PriorityBadge priority={task.priority} />
-        {task.dueDate && (
+        {isTerminated && (
+          <Badge className="bg-priority-high/15 text-priority-high dark:bg-priority-high/20 border border-priority-high/30 font-semibold">
+            Terminated (Uncompleted)
+          </Badge>
+        )}
+        {task.dueDate && !isTerminated && (
           <Badge
             className={cn(
               'bg-ink-100 text-ink-500 dark:bg-ink-700 dark:text-ink-300',

@@ -34,10 +34,12 @@ import {
 import { computeStats, filterTasks, sortTasks } from '@/utils/taskUtils';
 import {
   applyTaskUpdate,
+  autoTerminateExpiredTasks,
   buildTaskInput,
   createTask,
   duplicateTask as duplicateTaskEntity,
   moveTaskToTrash,
+  reactivateTask as reactivateTaskEntity,
   restoreTaskFromTrash,
   toggleTaskCompletion,
 } from '@/services/taskService';
@@ -100,6 +102,7 @@ export interface TaskContextValue {
   toggleArchive: (id: string) => void;
   togglePin: (id: string) => void;
   toggleFavorite: (id: string) => void;
+  reactivateTask: (id: string, newDueDate?: string | null) => void;
 
   // Bulk actions
   bulkComplete: () => void;
@@ -369,6 +372,17 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     [tasks, setTasks],
   );
 
+  const reactivateTask = useCallback(
+    (id: string, newDueDate?: string | null) => {
+      const task = tasks.find((t) => t.id === id);
+      if (!task) return;
+      const updated = reactivateTaskEntity(task, newDueDate);
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+      notify.taskRestored(task.title);
+    },
+    [tasks, setTasks],
+  );
+
   // ---- Bulk actions --------------------------------------------------------
 
   const bulkComplete = useCallback(() => {
@@ -539,6 +553,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     toggleArchive,
     togglePin,
     toggleFavorite,
+    reactivateTask,
     bulkComplete,
     bulkArchive,
     bulkRestore,

@@ -28,7 +28,7 @@ export function filterTasks(tasks: Task[], query: TaskQuery, categories: Categor
     result = result.filter((t) => !t.archived);
     switch (filter) {
       case 'pending':
-        result = result.filter((t) => !t.completed);
+        result = result.filter((t) => !t.completed && !t.terminated);
         break;
       case 'completed':
         result = result.filter((t) => t.completed);
@@ -40,7 +40,10 @@ export function filterTasks(tasks: Task[], query: TaskQuery, categories: Categor
         result = result.filter((t) => isTaskUpcoming(t.dueDate));
         break;
       case 'overdue':
-        result = result.filter((t) => isTaskOverdue(t.dueDate, t.completed));
+        result = result.filter((t) => (isTaskOverdue(t.dueDate, t.completed) || Boolean(t.terminated)) && !t.completed);
+        break;
+      case 'terminated':
+        result = result.filter((t) => Boolean(t.terminated) || (isTaskOverdue(t.dueDate, t.completed) && !t.completed));
         break;
       case 'all':
       default:
@@ -105,10 +108,11 @@ export function computeStats(tasks: Task[]): TaskStats {
   const active = tasks.filter((t) => !t.archived);
   const total = active.length;
   const completed = active.filter((t) => t.completed).length;
-  const pending = total - completed;
-  const overdue = active.filter((t) => isTaskOverdue(t.dueDate, t.completed)).length;
+  const terminated = active.filter((t) => Boolean(t.terminated) || (isTaskOverdue(t.dueDate, t.completed) && !t.completed)).length;
+  const pending = active.filter((t) => !t.completed && !t.terminated && !isTaskOverdue(t.dueDate, t.completed)).length;
+  const overdue = terminated;
   const productivity = total === 0 ? 0 : Math.round((completed / total) * 100);
-  return { total, completed, pending, overdue, productivity };
+  return { total, completed, pending, overdue, terminated, productivity };
 }
 
 export interface ChartDatum {

@@ -5,6 +5,7 @@ export type FilterType =
   | 'archived'
   | 'today'
   | 'upcoming'
-  | 'overdue';
+  | 'overdue'
+  | 'terminated';
 
 export type SortType = 'dueDate' | 'priority' | 'recent' | 'alphabetical';

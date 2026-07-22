@@ -14,11 +14,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { FiActivity, FiCheckCircle, FiList } from 'react-icons/fi';
+import { FiActivity, FiAlertCircle, FiCheckCircle, FiList, FiRotateCcw, FiSlash } from 'react-icons/fi';
 import { useTasks } from '@/hooks/useTasks';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { CategoryBadge, PriorityBadge } from '@/components/tasks/Badges';
 import { completionTrend, tasksByCategory, tasksByPriority } from '@/utils/taskUtils';
+import { formatFriendlyDate, isTaskOverdue } from '@/utils/date';
 
 const AXIS_COLOR = '#94A3B8';
 
@@ -35,21 +38,27 @@ const TOOLTIP_LABEL_STYLE = { color: '#fff', fontWeight: 600, marginBottom: 4 };
 const TOOLTIP_ITEM_STYLE = { color: '#E2E8F0' };
 
 export default function Statistics() {
-  const { tasks, categories, stats } = useTasks();
+  const { tasks, categories, stats, getCategory, reactivateTask, openTaskDetails } = useTasks();
 
   const categoryData = useMemo(() => tasksByCategory(tasks, categories), [tasks, categories]);
   const priorityData = useMemo(() => tasksByPriority(tasks), [tasks]);
   const trendData = useMemo(() => completionTrend(tasks, 14), [tasks]);
+
+  const terminatedTasks = useMemo(
+    () => tasks.filter((t) => !t.archived && (Boolean(t.terminated) || (isTaskOverdue(t.dueDate, t.completed) && !t.completed))),
+    [tasks],
+  );
+
   const hasTasks = stats.total > 0;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-ink-900 dark:text-white">Statistics</h1>
-        <p className="mt-1 text-sm text-ink-400">A closer look at how you’re spending your time.</p>
+        <p className="mt-1 text-sm text-ink-400">Deep insights into your productivity, completed goals, and auto-terminated tasks.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total tasks" value={stats.total} icon={<FiList aria-hidden="true" />} accent="flow" />
         <StatCard
           label="Completed"
@@ -60,10 +69,17 @@ export default function Statistics() {
         />
         <StatCard label="Pending" value={stats.pending} icon={<FiActivity aria-hidden="true" />} accent="amber" delay={0.1} />
         <StatCard
+          label="Terminated"
+          value={stats.terminated}
+          icon={<FiSlash aria-hidden="true" />}
+          accent="rose"
+          delay={0.12}
+        />
+        <StatCard
           label="Productivity"
           value={`${stats.productivity}%`}
           icon={<FiActivity aria-hidden="true" />}
-          accent="rose"
+          accent="flow"
           delay={0.15}
         />
       </div>
@@ -76,6 +92,63 @@ export default function Statistics() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Terminated Tasks Insights Block */}
+          <div className="glass-card p-5 lg:col-span-2 border-priority-high/30 bg-priority-high/[0.02]">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2 text-priority-high">
+                <FiAlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <h3 className="font-display text-base font-semibold text-ink-900 dark:text-white">
+                  Auto-Terminated Tasks Insights ({terminatedTasks.length})
+                </h3>
+              </div>
+              <span className="text-xs text-ink-400">
+                Tasks not completed within 1 day deadline are automatically terminated.
+              </span>
+            </div>
+
+            {terminatedTasks.length === 0 ? (
+              <p className="py-6 text-center text-sm text-ink-400">
+                🎉 Excellent! No tasks have been terminated. All 1-day tasks were completed on time!
+              </p>
+            ) : (
+              <div className="space-y-3">
+                <div className="divide-y divide-ink-100 dark:divide-ink-800 rounded-xl border border-ink-100 dark:border-ink-800 bg-white/60 dark:bg-ink-900/40">
+                  {terminatedTasks.map((t) => {
+                    const category = getCategory(t.category);
+                    return (
+                      <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-left">
+                        <button
+                          type="button"
+                          onClick={() => openTaskDetails(t)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <p className="font-medium text-ink-900 dark:text-white hover:underline truncate">
+                            {t.title}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                            <CategoryBadge category={category} />
+                            <PriorityBadge priority={t.priority} />
+                            <span className="text-priority-high font-medium">
+                              Expired {formatFriendlyDate(t.dueDate)}
+                            </span>
+                          </div>
+                        </button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          leftIcon={<FiRotateCcw className="h-3.5 w-3.5" />}
+                          onClick={() => reactivateTask(t.id)}
+                        >
+                          Reactivate Task
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="glass-card p-5">
             <h3 className="mb-4 font-display text-base font-semibold text-ink-800 dark:text-white">
               Tasks by category

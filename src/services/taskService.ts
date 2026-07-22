@@ -111,3 +111,45 @@ export function restoreTaskFromTrash(deleted: DeletedTask): Task {
   const { deletedAt: _deletedAt, ...task } = deleted;
   return task;
 }
+
+/** Check for single-day/due-date tasks that were not completed by their deadline and auto-terminate them. */
+export function autoTerminateExpiredTasks(tasks: Task[]): { updatedTasks: Task[]; newlyTerminatedCount: number } {
+  const now = new Date().toISOString();
+  let newlyTerminatedCount = 0;
+
+  const updatedTasks = tasks.map((t) => {
+    // If completed or archived or has no due date, leave as-is
+    if (t.completed || t.archived || !t.dueDate) return t;
+
+    // Check if past its 1-day / due-date deadline
+    const date = new Date(t.dueDate);
+    const isPastDeadline = !Number.isNaN(date.getTime()) && date.getTime() < new Date().setHours(0, 0, 0, 0);
+
+    if (isPastDeadline && !t.terminated) {
+      newlyTerminatedCount += 1;
+      return {
+        ...t,
+        terminated: true,
+        terminatedAt: now,
+        updatedAt: now,
+      };
+    }
+    return t;
+  });
+
+  return { updatedTasks, newlyTerminatedCount };
+}
+
+/** Reactivate a terminated task with an updated due date. */
+export function reactivateTask(task: Task, newDueDate?: string | null): Task {
+  const now = new Date().toISOString();
+  return {
+    ...task,
+    terminated: false,
+    terminatedAt: null,
+    completed: false,
+    completedAt: null,
+    dueDate: newDueDate !== undefined ? newDueDate : task.dueDate,
+    updatedAt: now,
+  };
+}
