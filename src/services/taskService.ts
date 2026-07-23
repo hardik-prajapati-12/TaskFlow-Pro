@@ -1,5 +1,6 @@
 import { generateId } from '@/utils/id';
 import { getNextRecurrenceDate } from '@/utils/date';
+import { getTaskTerminationStatus } from '@/utils/taskUtils';
 import type { DeletedTask, Task, TaskFormValues, TaskInput } from '@/types';
 
 /** Convert raw react-hook-form string values into typed, storage-ready fields. */
@@ -25,6 +26,9 @@ export function createTask(input: TaskInput): Task {
     archived: false,
     pinned: false,
     favorite: false,
+    terminated: false,
+    terminatedAt: null,
+    terminationReason: null,
     createdAt: now,
     updatedAt: now,
     completedAt: null,
@@ -47,6 +51,9 @@ export function duplicateTask(task: Task): Task {
     title: `${task.title} (Copy)`,
     completed: false,
     completedAt: null,
+    terminated: false,
+    terminatedAt: null,
+    terminationReason: null,
     pinned: false,
     createdAt: now,
     updatedAt: now,
@@ -85,6 +92,9 @@ export function toggleTaskCompletion(task: Task): CompletionResult {
       dueDate: getNextRecurrenceDate(task.dueDate, task.recurrence),
       completed: false,
       completedAt: null,
+      terminated: false,
+      terminatedAt: null,
+      terminationReason: null,
       pinned: false,
       favorite: false,
       createdAt: now,
@@ -112,26 +122,26 @@ export function restoreTaskFromTrash(deleted: DeletedTask): Task {
   return task;
 }
 
-/** Check for single-day/due-date tasks that were not completed by their deadline and auto-terminate them. */
+/** Check for tasks that were not completed within estimated time or 24-hour limit and auto-terminate them. */
 export function autoTerminateExpiredTasks(tasks: Task[]): { updatedTasks: Task[]; newlyTerminatedCount: number } {
-  const now = new Date().toISOString();
+  const now = new Date();
+  const nowIso = now.toISOString();
+  const nowMs = now.getTime();
   let newlyTerminatedCount = 0;
 
   const updatedTasks = tasks.map((t) => {
-    // If completed or archived or has no due date, leave as-is
-    if (t.completed || t.archived || !t.dueDate) return t;
+    if (t.completed || t.archived) return t;
 
-    // Check if past its 1-day / due-date deadline
-    const date = new Date(t.dueDate);
-    const isPastDeadline = !Number.isNaN(date.getTime()) && date.getTime() < new Date().setHours(0, 0, 0, 0);
+    const terminationStatus = getTaskTerminationStatus(t, nowMs);
 
-    if (isPastDeadline && !t.terminated) {
+    if (terminationStatus.isTerminated && !t.terminated) {
       newlyTerminatedCount += 1;
       return {
         ...t,
         terminated: true,
-        terminatedAt: now,
-        updatedAt: now,
+        terminatedAt: nowIso,
+        terminationReason: terminationStatus.reason ?? 'manual',
+        updatedAt: nowIso,
       };
     }
     return t;
@@ -140,16 +150,19 @@ export function autoTerminateExpiredTasks(tasks: Task[]): { updatedTasks: Task[]
   return { updatedTasks, newlyTerminatedCount };
 }
 
-/** Reactivate a terminated task with an updated due date. */
+/** Reactivate a terminated task, resetting creation timestamp so timer starts fresh. */
 export function reactivateTask(task: Task, newDueDate?: string | null): Task {
   const now = new Date().toISOString();
   return {
     ...task,
     terminated: false,
     terminatedAt: null,
+    terminationReason: null,
     completed: false,
     completedAt: null,
+    createdAt: now, // Reset timer window for reactivated task
     dueDate: newDueDate !== undefined ? newDueDate : task.dueDate,
     updatedAt: now,
   };
 }
+

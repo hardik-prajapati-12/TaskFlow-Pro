@@ -192,9 +192,12 @@ function TaskFormFields() {
             type="number"
             min={0}
             step={5}
-            placeholder="e.g. 30"
+            placeholder="e.g. 30 (leave blank for 24h limit)"
             {...register('estimatedTime')}
           />
+          <p className="mt-1 text-[11px] text-ink-400">
+            Task auto-terminates if not completed within estimated time (or 24h if left blank).
+          </p>
         </div>
       </div>
 

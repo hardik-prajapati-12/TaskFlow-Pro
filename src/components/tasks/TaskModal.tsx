@@ -1,19 +1,21 @@
 import type { ReactNode } from 'react';
-import { FiCheckCircle, FiEdit2 } from 'react-icons/fi';
+import { FiAlertCircle, FiCheckCircle, FiEdit2, FiRotateCcw } from 'react-icons/fi';
 import { useTasks } from '@/hooks/useTasks';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { CategoryBadge, PriorityBadge } from './Badges';
-import { formatDateTime, formatFullDate } from '@/utils/date';
+import { formatDateTime, formatFullDate, formatMinutesToHours } from '@/utils/date';
+import { isTerminatedTask } from '@/utils/taskUtils';
 import { cn } from '@/utils/cn';
 
 export function TaskModal() {
-  const { viewingTask, isTaskDetailsOpen, closeTaskDetails, getCategory, toggleComplete, openEditForm } =
+  const { viewingTask, isTaskDetailsOpen, closeTaskDetails, getCategory, toggleComplete, openEditForm, reactivateTask } =
     useTasks();
 
   if (!viewingTask) return null;
   const task = viewingTask;
   const category = getCategory(task.category);
+  const isTerminated = isTerminatedTask(task);
 
   return (
     <Modal
@@ -23,16 +25,29 @@ export function TaskModal() {
       size="md"
       footer={
         <>
-          <Button
-            variant="secondary"
-            leftIcon={<FiEdit2 aria-hidden="true" />}
-            onClick={() => {
-              closeTaskDetails();
-              openEditForm(task);
-            }}
-          >
-            Edit
-          </Button>
+          {isTerminated ? (
+            <Button
+              variant="secondary"
+              leftIcon={<FiRotateCcw aria-hidden="true" />}
+              onClick={() => {
+                closeTaskDetails();
+                reactivateTask(task.id);
+              }}
+            >
+              Reactivate Task
+            </Button>
+          ) : (
+            <Button
+              variant="secondary"
+              leftIcon={<FiEdit2 aria-hidden="true" />}
+              onClick={() => {
+                closeTaskDetails();
+                openEditForm(task);
+              }}
+            >
+              Edit
+            </Button>
+          )}
           <Button
             leftIcon={<FiCheckCircle aria-hidden="true" />}
             onClick={() => {
@@ -51,6 +66,7 @@ export function TaskModal() {
             className={cn(
               'font-display text-xl font-semibold text-ink-900 dark:text-white',
               task.completed && 'text-ink-400 line-through',
+              isTerminated && !task.completed && 'text-rose-500',
             )}
           >
             {task.title}
@@ -60,20 +76,44 @@ export function TaskModal() {
             <PriorityBadge priority={task.priority} />
             <span
               className={cn(
-                'rounded-full px-2.5 py-1 text-xs font-medium',
+                'rounded-full px-2.5 py-1 text-xs font-semibold',
                 task.archived
                   ? 'bg-ink-200 text-ink-600 dark:bg-ink-600 dark:text-ink-200'
                   : task.completed
                     ? 'bg-signal-100 text-signal-700 dark:bg-signal-900/40 dark:text-signal-300'
-                    : 'bg-flow-100 text-flow-700 dark:bg-flow-900/40 dark:text-flow-300',
+                    : isTerminated
+                      ? 'bg-rose-500/15 text-rose-500 dark:bg-rose-500/20 border border-rose-500/30'
+                      : 'bg-flow-100 text-flow-700 dark:bg-flow-900/40 dark:text-flow-300',
               )}
             >
-              {task.archived ? 'Archived' : task.completed ? 'Completed' : 'Pending'}
+              {task.archived
+                ? 'Archived'
+                : task.completed
+                  ? 'Completed'
+                  : isTerminated
+                    ? 'Terminated'
+                    : 'Pending'}
             </span>
             {task.pinned && <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-500 dark:bg-ink-700 dark:text-ink-300">📌 Pinned</span>}
             {task.favorite && <span className="rounded-full bg-ink-100 px-2.5 py-1 text-xs font-medium text-ink-500 dark:bg-ink-700 dark:text-ink-300">⭐ Favorite</span>}
           </div>
         </div>
+
+        {isTerminated && !task.completed && (
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-600 dark:text-rose-300 flex items-start gap-2.5">
+            <FiAlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold">Task Auto-Terminated</p>
+              <p className="mt-0.5 opacity-90">
+                {task.terminationReason === 'estimated_time_exceeded'
+                  ? `This task was automatically terminated because it was not completed within its estimated time of ${formatMinutesToHours(task.estimatedTime)}.`
+                  : task.estimatedTime
+                  ? `This task was automatically terminated because it was not completed within its estimated time of ${formatMinutesToHours(task.estimatedTime)}.`
+                  : 'This task had no estimated time set and was automatically terminated after 24 hours.'}
+              </p>
+            </div>
+          </div>
+        )}
 
         {task.description && (
           <Field label="Description">
@@ -87,7 +127,7 @@ export function TaskModal() {
           </Field>
           <Field label="Estimated time">
             <p className="text-sm text-ink-700 dark:text-ink-200">
-              {task.estimatedTime ? `${task.estimatedTime} minutes` : 'Not set'}
+              {task.estimatedTime ? formatMinutesToHours(task.estimatedTime) : 'Not set (24h auto-terminate)'}
             </p>
           </Field>
         </div>

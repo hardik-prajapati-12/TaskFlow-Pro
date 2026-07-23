@@ -1,6 +1,7 @@
 import {
   createContext,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -161,6 +162,24 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [viewingTask, setViewingTask] = useState<Task | null>(null);
   const [isTaskDetailsOpen, setIsTaskDetailsOpen] = useState(false);
   const [confirmState, setConfirmState] = useState<ConfirmState | null>(null);
+
+  // Auto-terminate expired tasks periodically
+  useEffect(() => {
+    const checkAndTerminate = () => {
+      setTasks((prev) => {
+        const { updatedTasks, newlyTerminatedCount } = autoTerminateExpiredTasks(prev);
+        if (newlyTerminatedCount > 0) {
+          notify.info(`${newlyTerminatedCount} task${newlyTerminatedCount > 1 ? 's' : ''} auto-terminated due to time limit.`);
+          return updatedTasks;
+        }
+        return prev;
+      });
+    };
+
+    checkAndTerminate();
+    const interval = setInterval(checkAndTerminate, 10000);
+    return () => clearInterval(interval);
+  }, [setTasks]);
 
   const categoryMap = useMemo(() => new Map(categories.map((c) => [c.id, c])), [categories]);
   const getCategory = useCallback(

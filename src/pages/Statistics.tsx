@@ -14,14 +14,14 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { FiActivity, FiAlertCircle, FiCheckCircle, FiList, FiRotateCcw, FiSlash } from 'react-icons/fi';
+import { FiActivity, FiAlertCircle, FiCheckCircle, FiClock, FiList, FiRotateCcw, FiSlash } from 'react-icons/fi';
 import { useTasks } from '@/hooks/useTasks';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { CategoryBadge, PriorityBadge } from '@/components/tasks/Badges';
-import { completionTrend, tasksByCategory, tasksByPriority } from '@/utils/taskUtils';
-import { formatFriendlyDate, isTaskOverdue } from '@/utils/date';
+import { completionTrend, isTerminatedTask, tasksByCategory, tasksByPriority, tasksByStatus } from '@/utils/taskUtils';
+import { formatMinutesToHours } from '@/utils/date';
 
 const AXIS_COLOR = '#94A3B8';
 
@@ -42,12 +42,13 @@ export default function Statistics() {
 
   const categoryData = useMemo(() => tasksByCategory(tasks, categories), [tasks, categories]);
   const priorityData = useMemo(() => tasksByPriority(tasks), [tasks]);
+  const statusData = useMemo(() => tasksByStatus(tasks), [tasks]);
   const trendData = useMemo(() => completionTrend(tasks, 14), [tasks]);
 
-  const terminatedTasks = useMemo(
-    () => tasks.filter((t) => !t.archived && (Boolean(t.terminated) || (isTaskOverdue(t.dueDate, t.completed) && !t.completed))),
-    [tasks],
-  );
+  const terminatedTasks = useMemo(() => {
+    const nowMs = Date.now();
+    return tasks.filter((t) => !t.archived && !t.completed && isTerminatedTask(t, nowMs));
+  }, [tasks]);
 
   const hasTasks = stats.total > 0;
 
@@ -93,28 +94,37 @@ export default function Statistics() {
       ) : (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Terminated Tasks Insights Block */}
-          <div className="glass-card p-5 lg:col-span-2 border-priority-high/30 bg-priority-high/[0.02]">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-priority-high">
+          <div className="glass-card p-5 lg:col-span-2 border-rose-500/30 bg-rose-500/[0.02]">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2 text-rose-500">
                 <FiAlertCircle className="h-5 w-5 shrink-0" aria-hidden="true" />
                 <h3 className="font-display text-base font-semibold text-ink-900 dark:text-white">
                   Auto-Terminated Tasks Insights ({terminatedTasks.length})
                 </h3>
               </div>
               <span className="text-xs text-ink-400">
-                Tasks not completed within 1 day deadline are automatically terminated.
+                Tasks with estimated time expire after limit; tasks without estimated time expire after 24 hours.
               </span>
             </div>
 
             {terminatedTasks.length === 0 ? (
               <p className="py-6 text-center text-sm text-ink-400">
-                🎉 Excellent! No tasks have been terminated. All 1-day tasks were completed on time!
+                🎉 Excellent! No tasks have been terminated. All tasks were completed within their time limit!
               </p>
             ) : (
               <div className="space-y-3">
                 <div className="divide-y divide-ink-100 dark:divide-ink-800 rounded-xl border border-ink-100 dark:border-ink-800 bg-white/60 dark:bg-ink-900/40">
                   {terminatedTasks.map((t) => {
                     const category = getCategory(t.category);
+                    const reasonText =
+                      t.terminationReason === 'estimated_time_exceeded'
+                        ? `Exceeded estimated time limit (${formatMinutesToHours(t.estimatedTime)})`
+                        : t.terminationReason === 'twenty_four_hours_exceeded'
+                        ? 'Exceeded 24-hour time limit'
+                        : t.estimatedTime
+                        ? `Exceeded estimated time limit (${formatMinutesToHours(t.estimatedTime)})`
+                        : 'Exceeded 24-hour time limit';
+
                     return (
                       <div key={t.id} className="flex flex-wrap items-center justify-between gap-3 p-3 text-left">
                         <button
@@ -128,8 +138,9 @@ export default function Statistics() {
                           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
                             <CategoryBadge category={category} />
                             <PriorityBadge priority={t.priority} />
-                            <span className="text-priority-high font-medium">
-                              Expired {formatFriendlyDate(t.dueDate)}
+                            <span className="inline-flex items-center gap-1 font-semibold text-rose-500">
+                              <FiClock className="h-3 w-3" aria-hidden="true" />
+                              {reasonText}
                             </span>
                           </div>
                         </button>
@@ -151,23 +162,29 @@ export default function Statistics() {
 
           <div className="glass-card p-5">
             <h3 className="mb-4 font-display text-base font-semibold text-ink-800 dark:text-white">
-              Tasks by category
+              Task status distribution
             </h3>
-            {categoryData.length === 0 ? (
-              <p className="py-10 text-center text-sm text-ink-400">No active tasks in any category.</p>
+            {statusData.length === 0 ? (
+              <p className="py-10 text-center text-sm text-ink-400">No task status data available.</p>
             ) : (
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={categoryData} margin={{ left: -16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={AXIS_COLOR} opacity={0.2} vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: AXIS_COLOR }} axisLine={{ stroke: AXIS_COLOR, opacity: 0.3 }} tickLine={false} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: AXIS_COLOR }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} cursor={{ fill: 'rgba(148,163,184,0.08)' }} />
-                  <Bar dataKey="value" name="Tasks" radius={[6, 6, 0, 0]} maxBarSize={48}>
-                    {categoryData.map((entry) => (
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={3}
+                    strokeWidth={0}
+                  >
+                    {statusData.map((entry) => (
                       <Cell key={entry.name} fill={entry.color} />
                     ))}
-                  </Bar>
-                </BarChart>
+                  </Pie>
+                  <Legend verticalAlign="bottom" height={30} wrapperStyle={{ fontSize: 12, color: AXIS_COLOR }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} />
+                </PieChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -203,6 +220,29 @@ export default function Statistics() {
 
           <div className="glass-card p-5 lg:col-span-2">
             <h3 className="mb-4 font-display text-base font-semibold text-ink-800 dark:text-white">
+              Tasks by category
+            </h3>
+            {categoryData.length === 0 ? (
+              <p className="py-10 text-center text-sm text-ink-400">No tasks in any category.</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={categoryData} margin={{ left: -16 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={AXIS_COLOR} opacity={0.2} vertical={false} />
+                  <XAxis dataKey="name" tick={{ fontSize: 12, fill: AXIS_COLOR }} axisLine={{ stroke: AXIS_COLOR, opacity: 0.3 }} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: AXIS_COLOR }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} labelStyle={TOOLTIP_LABEL_STYLE} itemStyle={TOOLTIP_ITEM_STYLE} cursor={{ fill: 'rgba(148,163,184,0.08)' }} />
+                  <Bar dataKey="value" name="Tasks" radius={[6, 6, 0, 0]} maxBarSize={48}>
+                    {categoryData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+
+          <div className="glass-card p-5 lg:col-span-2">
+            <h3 className="mb-4 font-display text-base font-semibold text-ink-800 dark:text-white">
               Completion trend — last 14 days
             </h3>
             <ResponsiveContainer width="100%" height={260}>
@@ -226,3 +266,4 @@ export default function Statistics() {
     </div>
   );
 }
+

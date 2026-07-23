@@ -132,3 +132,29 @@ export function fromDateInputValue(value: string): string | null {
   const parsed = new Date(`${value}T09:00:00`);
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
+
+export function formatMinutesToHours(minutes: number | null | undefined): string {
+  if (!minutes || minutes <= 0) return '24 hours (default)';
+  if (minutes < 60) return `${minutes} min${minutes === 1 ? '' : 's'}`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMins = minutes % 60;
+  if (remainingMins === 0) return `${hours} hr${hours === 1 ? '' : 's'}`;
+  return `${hours}h ${remainingMins}m`;
+}
+
+export function formatTimeRemaining(ms: number): string {
+  if (ms <= 0) return 'Time expired';
+  const totalSeconds = Math.floor(ms / 1000);
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${minutes}m remaining`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m remaining`;
+  }
+  return `${totalSeconds}s remaining`;
+}
+

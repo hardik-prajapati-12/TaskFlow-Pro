@@ -17,6 +17,7 @@ export interface Task {
   favorite: boolean;
   terminated?: boolean;
   terminatedAt?: string | null;
+  terminationReason?: 'estimated_time_exceeded' | 'twenty_four_hours_exceeded' | 'due_date_exceeded' | 'manual' | null;
   recurrence: RecurrenceType;
   createdAt: string;
   updatedAt: string;

@@ -20,7 +20,8 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { IconButton } from '@/components/ui/IconButton';
 import { Badge } from '@/components/ui/Badge';
 import { CategoryBadge, PriorityBadge } from './Badges';
-import { formatFriendlyDate, isTaskOverdue } from '@/utils/date';
+import { formatFriendlyDate, formatMinutesToHours, isTaskOverdue } from '@/utils/date';
+import { isTerminatedTask } from '@/utils/taskUtils';
 import { cn } from '@/utils/cn';
 
 export function TaskCard({ task }: { task: Task }) {
@@ -47,7 +48,7 @@ export function TaskCard({ task }: { task: Task }) {
 
   const category = getCategory(task.category);
   const overdue = isTaskOverdue(task.dueDate, task.completed);
-  const isTerminated = Boolean(task.terminated) || (overdue && !task.completed);
+  const isTerminated = isTerminatedTask(task);
   const isSelected = selectedIds.includes(task.id);
 
   const handleDelete = () => {
@@ -72,7 +73,7 @@ export function TaskCard({ task }: { task: Task }) {
         'glass-card group relative flex flex-col gap-3 p-4 transition-shadow duration-200 hover:shadow-soft-lg',
         menuOpen ? 'z-30' : 'z-0 hover:z-10',
         task.completed && 'opacity-70',
-        isTerminated && 'border-priority-high/40 bg-priority-high/[0.03] dark:bg-priority-high/[0.05]',
+        isTerminated && 'border-rose-500/40 bg-rose-500/[0.03] dark:bg-rose-500/[0.05]',
         isSelected && 'ring-2 ring-flow-500',
       )}
     >
@@ -105,7 +106,7 @@ export function TaskCard({ task }: { task: Task }) {
             task.completed
               ? 'border-transparent bg-flow-gradient text-white'
               : isTerminated
-              ? 'border-priority-high text-priority-high hover:bg-priority-high/10'
+              ? 'border-rose-500 text-rose-500 hover:bg-rose-500/10'
               : 'border-ink-300 hover:border-flow-500 dark:border-ink-500',
           )}
         >
@@ -121,7 +122,7 @@ export function TaskCard({ task }: { task: Task }) {
             className={cn(
               'truncate font-medium text-ink-800 dark:text-ink-100',
               task.completed && 'text-ink-400 line-through dark:text-ink-500',
-              isTerminated && !task.completed && 'text-priority-high font-semibold',
+              isTerminated && !task.completed && 'text-rose-500 font-semibold',
             )}
           >
             {task.title}
@@ -212,29 +213,38 @@ export function TaskCard({ task }: { task: Task }) {
         <CategoryBadge category={category} />
         <PriorityBadge priority={task.priority} />
         {isTerminated && (
-          <Badge className="bg-priority-high/15 text-priority-high dark:bg-priority-high/20 border border-priority-high/30 font-semibold">
-            Terminated (Uncompleted)
+          <Badge className="bg-rose-500/15 text-rose-500 dark:bg-rose-500/20 border border-rose-500/30 font-semibold">
+            {task.terminationReason === 'estimated_time_exceeded'
+              ? `Terminated (${formatMinutesToHours(task.estimatedTime)} Limit Exceeded)`
+              : 'Terminated (24h Limit Exceeded)'}
           </Badge>
         )}
         {task.dueDate && !isTerminated && (
           <Badge
             className={cn(
               'bg-ink-100 text-ink-500 dark:bg-ink-700 dark:text-ink-300',
-              overdue && 'bg-priority-high/10 text-priority-high dark:bg-priority-high/15',
+              overdue && 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/15',
             )}
             icon={<FiCalendar className="h-3 w-3" aria-hidden="true" />}
           >
             {formatFriendlyDate(task.dueDate)}
           </Badge>
         )}
-        {task.estimatedTime && (
+        {task.estimatedTime ? (
           <Badge
-            className="bg-ink-100 text-ink-500 dark:bg-ink-700 dark:text-ink-300"
+            className="bg-flow-500/10 text-flow-600 dark:bg-flow-500/20 dark:text-flow-300 font-medium"
             icon={<FiClock className="h-3 w-3" aria-hidden="true" />}
           >
-            {task.estimatedTime >= 60 ? `${Math.round((task.estimatedTime / 60) * 10) / 10}h` : `${task.estimatedTime}m`}
+            Estimated: {formatMinutesToHours(task.estimatedTime)}
           </Badge>
-        )}
+        ) : !isTerminated && !task.completed ? (
+          <Badge
+            className="bg-ink-100 text-ink-400 dark:bg-ink-800 dark:text-ink-400"
+            icon={<FiClock className="h-3 w-3" aria-hidden="true" />}
+          >
+            24h auto-terminate policy
+          </Badge>
+        ) : null}
       </button>
     </motion.div>
   );

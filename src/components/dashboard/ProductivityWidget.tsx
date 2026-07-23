@@ -8,6 +8,7 @@ export function ProductivityWidget({ stats }: { stats: TaskStats }) {
       <ProgressRing value={stats.productivity} label="completed" />
       <p className="text-sm text-ink-400">
         {stats.completed} of {stats.total} active task{stats.total === 1 ? '' : 's'} completed
+        {stats.terminated > 0 ? ` (${stats.terminated} auto-terminated)` : ''}
       </p>
     </div>
   );

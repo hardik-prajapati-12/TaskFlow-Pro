@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
-import { FiActivity, FiCalendar, FiCheckCircle, FiList } from 'react-icons/fi';
+import { FiActivity, FiCalendar, FiCheckCircle, FiList, FiSlash } from 'react-icons/fi';
 import { useTasks } from '@/hooks/useTasks';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ProductivityWidget } from '@/components/dashboard/ProductivityWidget';
 import { GoalsWidget } from '@/components/dashboard/GoalsWidget';
 import { PinnedTasksWidget } from '@/components/dashboard/PinnedTasksWidget';
+import { TerminatedTasksWidget } from '@/components/dashboard/TerminatedTasksWidget';
 import { QuoteWidget } from '@/components/dashboard/QuoteWidget';
 import { TipWidget } from '@/components/dashboard/TipWidget';
 import { ProgressBar } from '@/components/ui/ProgressBar';
@@ -12,6 +13,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { CategoryBadge, PriorityBadge } from '@/components/tasks/Badges';
 import { formatFriendlyDate, formatFullDate, getGreeting, isTaskOverdue } from '@/utils/date';
+import { isTerminatedTask } from '@/utils/taskUtils';
 import { cn } from '@/utils/cn';
 
 export default function Dashboard() {
@@ -20,7 +22,7 @@ export default function Dashboard() {
   const upcoming = useMemo(
     () =>
       tasks
-        .filter((t) => !t.completed && !t.archived && t.dueDate)
+        .filter((t) => !t.completed && !t.archived && t.dueDate && !isTerminatedTask(t))
         .sort((a, b) => new Date(a.dueDate as string).getTime() - new Date(b.dueDate as string).getTime())
         .slice(0, 5),
     [tasks],
@@ -44,7 +46,7 @@ export default function Dashboard() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <StatCard label="Total tasks" value={stats.total} icon={<FiList aria-hidden="true" />} accent="flow" delay={0} />
             <StatCard
               label="Completed"
@@ -55,10 +57,17 @@ export default function Dashboard() {
             />
             <StatCard label="Pending" value={stats.pending} icon={<FiActivity aria-hidden="true" />} accent="amber" delay={0.1} />
             <StatCard
+              label="Terminated"
+              value={stats.terminated}
+              icon={<FiSlash aria-hidden="true" />}
+              accent="rose"
+              delay={0.12}
+            />
+            <StatCard
               label="Productivity"
               value={`${stats.productivity}%`}
               icon={<FiActivity aria-hidden="true" />}
-              accent="rose"
+              accent="flow"
               delay={0.15}
             />
           </div>
@@ -77,6 +86,8 @@ export default function Dashboard() {
                 <ProductivityWidget stats={stats} />
                 <GoalsWidget />
               </div>
+
+              <TerminatedTasksWidget />
 
               <div className="glass-card p-5">
                 <div className="mb-3 flex items-center gap-2">

@@ -8,6 +8,77 @@ import {
   safeParseISO,
 } from './date';
 
+export interface TerminationInfo {
+  isTerminated: boolean;
+  reason?: 'estimated_time_exceeded' | 'twenty_four_hours_exceeded' | 'due_date_exceeded' | 'manual';
+  deadlineMs?: number;
+  timeRemainingMs?: number;
+}
+
+/** Check if a task has passed its estimated time or 24-hour limit without completion. */
+export function getTaskTerminationStatus(task: Task, nowMs: number = Date.now()): TerminationInfo {
+  if (task.completed || task.archived) {
+    return { isTerminated: false };
+  }
+
+  if (task.terminated) {
+    return {
+      isTerminated: true,
+      reason: task.terminationReason || 'manual',
+    };
+  }
+
+  const createdAtMs = safeParseISO(task.createdAt)?.getTime() ?? nowMs;
+
+  // Case A: Estimated time is specified (in minutes)
+  if (task.estimatedTime && task.estimatedTime > 0) {
+    const limitMs = task.estimatedTime * 60 * 1000;
+    const deadlineMs = createdAtMs + limitMs;
+    const timeRemainingMs = deadlineMs - nowMs;
+
+    if (nowMs >= deadlineMs) {
+      return {
+        isTerminated: true,
+        reason: 'estimated_time_exceeded',
+        deadlineMs,
+        timeRemainingMs: 0,
+      };
+    }
+
+    return {
+      isTerminated: false,
+      deadlineMs,
+      timeRemainingMs,
+    };
+  }
+
+  // Case B: No estimated time specified -> 24 hours (1 day) from creation
+  const limitMs = 24 * 60 * 60 * 1000;
+  const deadlineMs = createdAtMs + limitMs;
+  const timeRemainingMs = deadlineMs - nowMs;
+
+  if (nowMs >= deadlineMs) {
+    return {
+      isTerminated: true,
+      reason: 'twenty_four_hours_exceeded',
+      deadlineMs,
+      timeRemainingMs: 0,
+    };
+  }
+
+  return {
+    isTerminated: false,
+    deadlineMs,
+    timeRemainingMs,
+  };
+}
+
+/** Helper to check if task is completed or effectively terminated */
+export function isTerminatedTask(task: Task, nowMs: number = Date.now()): boolean {
+  if (task.completed || task.archived) return false;
+  return Boolean(task.terminated) || getTaskTerminationStatus(task, nowMs).isTerminated;
+}
+
 interface TaskQuery {
   filter: FilterType;
   category: string | null;
@@ -19,6 +90,7 @@ interface TaskQuery {
 /** Apply the active filter, category/priority narrowing, favorites toggle, and search query. */
 export function filterTasks(tasks: Task[], query: TaskQuery, categories: Category[]): Task[] {
   const { filter, category, priority, search, favoritesOnly } = query;
+  const nowMs = Date.now();
 
   let result = tasks;
 
@@ -28,22 +100,20 @@ export function filterTasks(tasks: Task[], query: TaskQuery, categories: Categor
     result = result.filter((t) => !t.archived);
     switch (filter) {
       case 'pending':
-        result = result.filter((t) => !t.completed && !t.terminated);
+        result = result.filter((t) => !t.completed && !isTerminatedTask(t, nowMs));
         break;
       case 'completed':
         result = result.filter((t) => t.completed);
         break;
       case 'today':
-        result = result.filter((t) => isTaskDueToday(t.dueDate));
+        result = result.filter((t) => isTaskDueToday(t.dueDate) && !t.completed && !isTerminatedTask(t, nowMs));
         break;
       case 'upcoming':
-        result = result.filter((t) => isTaskUpcoming(t.dueDate));
+        result = result.filter((t) => isTaskUpcoming(t.dueDate) && !t.completed && !isTerminatedTask(t, nowMs));
         break;
       case 'overdue':
-        result = result.filter((t) => (isTaskOverdue(t.dueDate, t.completed) || Boolean(t.terminated)) && !t.completed);
-        break;
       case 'terminated':
-        result = result.filter((t) => Boolean(t.terminated) || (isTaskOverdue(t.dueDate, t.completed) && !t.completed));
+        result = result.filter((t) => !t.completed && isTerminatedTask(t, nowMs));
         break;
       case 'all':
       default:
@@ -107,9 +177,11 @@ export function sortTasks(tasks: Task[], sort: SortType): Task[] {
 export function computeStats(tasks: Task[]): TaskStats {
   const active = tasks.filter((t) => !t.archived);
   const total = active.length;
+  const nowMs = Date.now();
+
   const completed = active.filter((t) => t.completed).length;
-  const terminated = active.filter((t) => Boolean(t.terminated) || (isTaskOverdue(t.dueDate, t.completed) && !t.completed)).length;
-  const pending = active.filter((t) => !t.completed && !t.terminated && !isTaskOverdue(t.dueDate, t.completed)).length;
+  const terminated = active.filter((t) => !t.completed && isTerminatedTask(t, nowMs)).length;
+  const pending = active.filter((t) => !t.completed && !isTerminatedTask(t, nowMs)).length;
   const overdue = terminated;
   const productivity = total === 0 ? 0 : Math.round((completed / total) * 100);
   return { total, completed, pending, overdue, terminated, productivity };
@@ -141,6 +213,20 @@ export function tasksByPriority(tasks: Task[]): ChartDatum[] {
   ].filter((d) => d.value > 0);
 }
 
+export function tasksByStatus(tasks: Task[]): ChartDatum[] {
+  const active = tasks.filter((t) => !t.archived);
+  const nowMs = Date.now();
+  const completed = active.filter((t) => t.completed).length;
+  const terminated = active.filter((t) => !t.completed && isTerminatedTask(t, nowMs)).length;
+  const pending = active.filter((t) => !t.completed && !isTerminatedTask(t, nowMs)).length;
+
+  return [
+    { name: 'Completed', value: completed, color: '#10B981' },
+    { name: 'Pending', value: pending, color: '#F59E0B' },
+    { name: 'Terminated', value: terminated, color: '#F43F5E' },
+  ].filter((d) => d.value > 0);
+}
+
 export interface TrendDatum {
   day: string;
   completed: number;
@@ -164,3 +250,4 @@ export function completionTrend(tasks: Task[], days = 7): TrendDatum[] {
 export function countCompletedSince(tasks: Task[], since: (d: string | null) => boolean): number {
   return tasks.filter((t) => t.completed && since(t.completedAt)).length;
 }
+

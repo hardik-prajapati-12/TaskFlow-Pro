@@ -23,5 +23,7 @@ export const notify = {
   dataExported: () => toast.success('Export ready — check your downloads'),
   dataImported: (count: number) => toast.success(`Imported ${count} task${count === 1 ? '' : 's'}`),
   dataReset: () => toast.success('All data has been reset'),
+  taskAutoTerminated: (count: number) => toast(`${count} task${count === 1 ? '' : 's'} auto-terminated (exceeded time limit)`, { icon: '🛑' }),
+  info: (message: string) => toast(message, { icon: 'ℹ️' }),
   error: (message: string) => toast.error(message),
 };
